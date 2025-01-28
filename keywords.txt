@@ -1,0 +1,25 @@
+#######################################
+# Syntax Coloring Map For AViShaESPCam
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+AViShaESPCam  KEYWORD1
+FrameBuffer   KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+capture       KEYWORD2
+frameToBase64 KEYWORD2
+returnFrame   KEYWORD2
+enableLogging KEYWORD2
+initSDCard    KEYWORD2
+saveToSD      KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
