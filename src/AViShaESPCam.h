@@ -13,6 +13,11 @@
 
 #define FrameBuffer camera_fb_t
 
+#define JPEG PIXFORMAT_JPEG
+#define YUV422 PIXFORMAT_YUV422
+#define GRAYSCALE PIXFORMAT_GRAYSCALE
+#define RGB565 PIXFORMAT_RGB565
+
 // Daftar resolusi yang didukung
 enum CameraResolution {
   R_96X96 = FRAMESIZE_96X96,
@@ -69,11 +74,14 @@ class AViShaESPCam {
     bool saveToSD(camera_fb_t* frame, const char* filename);
     String frameToBase64(camera_fb_t* frame);
     String urlencode(String str);
+    void setPixelFormat(pixformat_t format);
+    FrameBuffer* convertFrameToJpeg(FrameBuffer* frame);
 
   private:
     bool frameToBase64(camera_fb_t* frame, char* output, size_t outputSize);
     bool urlencode(const char* input, char* output, size_t outputSize);
     camera_config_t _espConfig;
+    pixformat_t _currentPixelFormat;
     bool _enableLogging;
 };
 

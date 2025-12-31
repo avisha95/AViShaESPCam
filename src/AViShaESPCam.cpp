@@ -26,7 +26,53 @@ CameraConfig AI_THINKER() {
   return config;
 }
 
+
+void AViShaESPCam::setPixelFormat(pixformat_t pixelFormat) {
+  if (pixelFormat == PIXFORMAT_JPEG || pixelFormat == PIXFORMAT_YUV422 || pixelFormat == PIXFORMAT_GRAYSCALE || pixelFormat == PIXFORMAT_RGB565) {
+    _currentPixelFormat = pixelFormat;
+  } else {
+    if (_enableLogging) {
+      Serial.println("[CAM]: Invalid Pixel Format");
+    }
+  }
+}
+
+FrameBuffer* AViShaESPCam::convertFrameToJpeg(FrameBuffer* frame) {
+  camera_fb_t fb;
+  fb.buf = frame->buf;
+  fb.len = frame->len;
+  fb.width = frame->width;
+  fb.height = frame->height;
+  fb.format = frame->format;
+
+  uint8_t* jpegData = NULL;
+  size_t jpegSize = 0;
+
+  if (frame2jpg(&fb, 80, &jpegData, &jpegSize)) {
+    FrameBuffer* jpegFrame = new FrameBuffer;
+    jpegFrame->buf = jpegData;
+    jpegFrame->len = jpegSize;
+    jpegFrame->width = 0;
+    jpegFrame->height = 0;
+    jpegFrame->format = PIXFORMAT_JPEG;
+
+    if (_enableLogging) {
+      Serial.printf("[CAM]: Converted frame to JPEG. Size: %d bytes\n", jpegSize);
+    }
+
+    return jpegFrame;
+  } else {
+    if (_enableLogging) {
+      Serial.println("[CAM]: Frame to JPEG conversion failed");
+    }
+    return nullptr;
+  }
+}
+
+
+
 AViShaESPCam::AViShaESPCam() {
+  _currentPixelFormat = PIXFORMAT_JPEG; // Default pixel format
   _enableLogging = true;
 }
 
@@ -56,7 +102,7 @@ bool AViShaESPCam::init(CameraConfig config, CameraResolution resolution) {
   _espConfig.pin_pwdn = config.pinPwdn;
   _espConfig.pin_reset = config.pinReset;
   _espConfig.xclk_freq_hz = config.xclkFreq;
-  _espConfig.pixel_format = config.pixelFormat;
+  _espConfig.pixel_format = _currentPixelFormat;
   _espConfig.frame_size = (framesize_t)resolution;
 
   if (psramFound()) {
@@ -130,7 +176,7 @@ void AViShaESPCam::returnFrame(camera_fb_t* frame) {
   if (frame) {
     esp_camera_fb_return(frame);
     if (_enableLogging) {
-      Serial.println("[CAM]: Frame returned to buffer");
+      Serial.println("[CAM]: Frame returned to buffer " + String(_currentPixelFormat));
     }
   }
 }

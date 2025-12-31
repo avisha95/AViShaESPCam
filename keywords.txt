@@ -6,20 +6,45 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-AViShaESPCam  KEYWORD1
-FrameBuffer   KEYWORD1
+AViShaESPCam	KEYWORD1
+FrameBuffer	KEYWORD1
+AI_THINKER	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-capture       KEYWORD2
-frameToBase64 KEYWORD2
-returnFrame   KEYWORD2
-enableLogging KEYWORD2
-initSDCard    KEYWORD2
-saveToSD      KEYWORD2
+capture	KEYWORD2
+frameToBase64	KEYWORD2
+returnFrame	KEYWORD2
+enableLogging	KEYWORD2
+initSDCard	KEYWORD2
+saveToSD	KEYWORD2
+setPixelFormat	KEYWORD2
+convertFrameToJpeg	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+RGB565	LITERAL1
+JPEG	LITERAL1
+GRAYSCALE	LITERAL1
+YUV422	LITERAL1
+
+R_96X96	LITERAL1
+QQVGA	LITERAL1
+QCIF	LITERAL1
+HQVGA	LITERAL1
+R_240X240	LITERAL1
+QVGA	LITERAL1
+CIF	LITERAL1
+HVGA	LITERAL1
+VGA	LITERAL1
+SVGA	LITERAL1
+XGA	LITERAL1
+HD	LITERAL1
+SXGA	LITERAL1
+UXGA	LITERAL1
+FHD	LITERAL1
+QHD	LITERAL1

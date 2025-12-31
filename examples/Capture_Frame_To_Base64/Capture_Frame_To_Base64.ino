@@ -1,3 +1,14 @@
+/* Capture Frame to Base64 Example for AViSha ESPCam
+ * This example captures a frame from the camera and converts it to a Base64 string.
+ * It is designed to be used with the AI Thinker ESP32-CAM module.
+ * 
+ * Created by Ajang Rahmat, 2024
+ * 
+ * This example is in the public domain.
+ *
+ * For more information, visit: github.com/AViSha/AViShaESPCam
+*/
+
 #include <AViShaESPCam.h>
 AViShaESPCam espcam;
 
