@@ -26,7 +26,6 @@ CameraConfig AI_THINKER() {
   return config;
 }
 
-
 void AViShaESPCam::setPixelFormat(pixformat_t pixelFormat) {
   if (pixelFormat == PIXFORMAT_JPEG || pixelFormat == PIXFORMAT_YUV422 || pixelFormat == PIXFORMAT_GRAYSCALE || pixelFormat == PIXFORMAT_RGB565) {
     _currentPixelFormat = pixelFormat;
@@ -69,8 +68,6 @@ FrameBuffer* AViShaESPCam::convertFrameToJpeg(FrameBuffer* frame) {
   }
 }
 
-
-
 AViShaESPCam::AViShaESPCam() {
   _currentPixelFormat = PIXFORMAT_JPEG; // Default pixel format
   _enableLogging = true;
@@ -108,9 +105,11 @@ bool AViShaESPCam::init(CameraConfig config, CameraResolution resolution) {
   if (psramFound()) {
     _espConfig.fb_count = 2;
     _espConfig.jpeg_quality = 10;
+    _espConfig.grab_mode = CAMERA_GRAB_LATEST;  // SELALU ambil frame terbaru
   } else {
     _espConfig.fb_count = 1;
     _espConfig.jpeg_quality = 12;
+    _espConfig.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
   }
 
   esp_err_t err = esp_camera_init(&_espConfig);
@@ -158,12 +157,34 @@ void AViShaESPCam::setResolution(CameraResolution resolution) {
   }
 }
 
+// PERBAIKAN UTAMA DI SINI!
 camera_fb_t* AViShaESPCam::capture() {
+  if (_enableLogging) {
+    Serial.println("[CAM]: Starting fresh capture...");
+  }
+  
+  // KOSONGKAN buffer terlebih dahulu untuk memastikan gambar baru
+  // Return semua frame yang ada di buffer
+  if (_espConfig.fb_count > 1) {
+    // Jika ada PSRAM dan double buffer, flush buffer lama
+    camera_fb_t* flush_frame = esp_camera_fb_get();
+    if (flush_frame) {
+      esp_camera_fb_return(flush_frame);
+      if (_enableLogging) {
+        Serial.println("[CAM]: Flushed old frame from buffer");
+      }
+    }
+  }
+  
+  // Delay kecil untuk sensor menyesuaikan
+  delay(100);
+  
+  // Ambil frame BARU
   camera_fb_t* frame = esp_camera_fb_get();
 
   if (_enableLogging) {
     if (frame) {
-      Serial.printf("[CAM]: Captured. Size: %d bytes\n", frame->len);
+      Serial.printf("[CAM]: Fresh captured! Size: %d bytes\n", frame->len);
     } else {
       Serial.println("[CAM]: Capture Failed!");
     }
@@ -176,7 +197,7 @@ void AViShaESPCam::returnFrame(camera_fb_t* frame) {
   if (frame) {
     esp_camera_fb_return(frame);
     if (_enableLogging) {
-      Serial.println("[CAM]: Frame returned to buffer " + String(_currentPixelFormat));
+      Serial.println("[CAM]: Frame returned to buffer");
     }
   }
 }
@@ -237,23 +258,21 @@ String AViShaESPCam::frameToBase64(camera_fb_t* frame) {
 bool AViShaESPCam::frameToBase64(camera_fb_t* frame, char* output, size_t outputSize) {
   if (!frame || !output) return false;
 
-  // Allocate temporary buffer for base64_encode
-  char* tempBuffer = (char*)malloc(frame->len);
-  if (!tempBuffer) {
-    if (_enableLogging) Serial.println("[BASE64]: Failed to allocate memory for Base64.");
+  // Calculate required buffer size for Base64 (4 * ceil(n/3))
+  size_t encodedSize = 4 * ((frame->len + 2) / 3);
+  if (encodedSize + 1 > outputSize) { // +1 for null terminator
+    if (_enableLogging) {
+      Serial.printf("[BASE64]: Output buffer too small. Needed: %d, Available: %d\n", 
+                   encodedSize + 1, outputSize);
+    }
     return false;
   }
 
-  // Copy data from frame->buf to tempBuffer
-  memcpy(tempBuffer, frame->buf, frame->len);
-
-  // Call base64_encode
-  size_t encodedSize = base64_encode(output, tempBuffer, frame->len);
-
-  // Free temporary buffer
-  free(tempBuffer);
-
-  return encodedSize < outputSize;
+  // Encode to base64
+  size_t actualSize = base64_encode(output, (char*)frame->buf, frame->len);
+  output[actualSize] = '\0'; // Null terminate
+  
+  return true;
 }
 
 // URL Encode string

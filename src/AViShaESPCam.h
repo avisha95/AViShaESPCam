@@ -10,7 +10,6 @@
 #include "EEPROM.h"
 
 #define EEPROM_SIZE 1
-
 #define FrameBuffer camera_fb_t
 
 #define JPEG PIXFORMAT_JPEG
@@ -70,12 +69,17 @@ class AViShaESPCam {
     void setResolution(CameraResolution resolution);
     void enableLogging(bool enable);
     camera_fb_t* capture();
+    camera_fb_t* captureFresh();  // NEW: Capture fresh image
     void returnFrame(camera_fb_t* frame);
     bool saveToSD(camera_fb_t* frame, const char* filename);
     String frameToBase64(camera_fb_t* frame);
     String urlencode(String str);
     void setPixelFormat(pixformat_t format);
     FrameBuffer* convertFrameToJpeg(FrameBuffer* frame);
+    bool setJPEGQuality(int quality);
+    bool setFrameSize(CameraResolution resolution);
+    bool isCameraInitialized();
+    void flushFrames();  // NEW: Flush buffer to get fresh frame
 
   private:
     bool frameToBase64(camera_fb_t* frame, char* output, size_t outputSize);
@@ -83,6 +87,9 @@ class AViShaESPCam {
     camera_config_t _espConfig;
     pixformat_t _currentPixelFormat;
     bool _enableLogging;
+    bool _cameraInitialized;
+    int _jpegQuality;
+    bool _convertNonJPEGFrames;
 };
 
 #endif
